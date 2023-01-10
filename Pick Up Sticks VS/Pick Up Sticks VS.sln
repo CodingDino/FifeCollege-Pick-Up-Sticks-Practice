@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32901.82
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Pick Up Sticks VS", "Pick Up Sticks VS.vcxproj", "{EA9F0E89-8A2F-4128-A82C-96417CC83615}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EA9F0E89-8A2F-4128-A82C-96417CC83615}.Debug|x64.ActiveCfg = Debug|x64
+		{EA9F0E89-8A2F-4128-A82C-96417CC83615}.Debug|x64.Build.0 = Debug|x64
+		{EA9F0E89-8A2F-4128-A82C-96417CC83615}.Debug|x86.ActiveCfg = Debug|Win32
+		{EA9F0E89-8A2F-4128-A82C-96417CC83615}.Debug|x86.Build.0 = Debug|Win32
+		{EA9F0E89-8A2F-4128-A82C-96417CC83615}.Release|x64.ActiveCfg = Release|x64
+		{EA9F0E89-8A2F-4128-A82C-96417CC83615}.Release|x64.Build.0 = Release|x64
+		{EA9F0E89-8A2F-4128-A82C-96417CC83615}.Release|x86.ActiveCfg = Release|Win32
+		{EA9F0E89-8A2F-4128-A82C-96417CC83615}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F3C3D9BB-8C8B-4CA3-BA60-14E1D8565735}
+	EndGlobalSection
+EndGlobal
