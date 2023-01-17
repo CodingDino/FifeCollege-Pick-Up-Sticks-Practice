@@ -20,22 +20,62 @@ int main()
     playerTexture.loadFromFile("Assets/Player_Stand.png");
     sf::Texture grassTexture;
     grassTexture.loadFromFile("Assets/Grass.png");
+    sf::Texture stickTexture;
+    stickTexture.loadFromFile("Assets/Stick.png");
 
     sf::Sprite playerSprite;
     playerSprite.setTexture(playerTexture);
     sf::Sprite grassSprite;
     grassSprite.setTexture(grassTexture);
+    sf::Sprite stickSprite;
+    stickSprite.setTexture(stickTexture);
 
     std::vector<sf::Sprite> grassSprites;
     int numGrassSpritesToAdd = 5;
     for (int i = 0; i < numGrassSpritesToAdd; ++i)
     {
+        int scaleTen = 5 + rand() % 11; // 5-15
+        float scale = scaleTen / 10.0f; // 0.5 - 1.5
+        grassSprite.setScale(scale, scale);
+        int colorTint = 100 + rand() % 155;
+        grassSprite.setColor(sf::Color(colorTint, colorTint, colorTint));
         grassSprite.setPosition(sf::Vector2f(rand() % (window.getSize().x - grassTexture.getSize().x), rand() % (window.getSize().y - grassTexture.getSize().y)));
         grassSprites.push_back(grassSprite);
     }
+    std::vector<sf::Sprite> stickSprites;
+    int randomRotation = rand() % 360;
+    stickSprite.setRotation(randomRotation);
+    stickSprite.setPosition(sf::Vector2f(rand() % (window.getSize().x - stickTexture.getSize().x), rand() % (window.getSize().y - stickTexture.getSize().y)));
+    stickSprites.push_back(stickSprite);
+
 
     // Position setup
-    playerSprite.setPosition(sf::Vector2f(0.0f, 100.0f));
+    playerSprite.setPosition(sf::Vector2f(0.0f, 0.0f));
+
+    // Colour Setup
+    //playerSprite.setColor(sf::Color(200,200,200));
+
+    // Rotation Example
+    playerSprite.setRotation(90);
+
+    // Scale Example
+    //playerSprite.setScale(1.0f, 3.0f);
+
+    // Origin Example
+    playerSprite.setOrigin(playerTexture.getSize().x / 2, playerTexture.getSize().y / 2);
+
+    // Load Fonts
+    sf::Font gameFont;
+    gameFont.loadFromFile("Assets/GameFont.ttf");
+
+    // Create Text Objects
+    sf::Text gameTitle;
+    gameTitle.setFont(gameFont);
+    gameTitle.setString("Pick Up Sticks");
+    float textWidth = gameTitle.getLocalBounds().width;
+    gameTitle.setPosition((float)window.getSize().x / 2.0f - textWidth / 2.0f, 10.0f);
+
+
 
 #pragma endregion
 
@@ -75,7 +115,11 @@ int main()
         // Draw all the things
         for (int i = 0; i < grassSprites.size(); ++i)
             window.draw(grassSprites[i]);
+        for (int i = 0; i < stickSprites.size(); ++i)
+            window.draw(stickSprites[i]);
         window.draw(playerSprite);
+
+        window.draw(gameTitle);
 
         window.display();
 
