@@ -1,4 +1,5 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include <iostream>
 #include <vector>
 #include <stdlib.h>
@@ -72,12 +73,33 @@ int main()
     sf::Text gameTitle;
     gameTitle.setFont(gameFont);
     gameTitle.setString("Pick Up Sticks");
+    gameTitle.setFillColor(sf::Color::Magenta);
+    gameTitle.setOutlineThickness(2.0f);
+    gameTitle.setOutlineColor(sf::Color::Black);
+    gameTitle.setStyle(sf::Text::Style::Bold | sf::Text::Style::Italic);
+    gameTitle.setCharacterSize(60);
+
     float textWidth = gameTitle.getLocalBounds().width;
     gameTitle.setPosition((float)window.getSize().x / 2.0f - textWidth / 2.0f, 10.0f);
 
 
+    sf::SoundBuffer startSFXBuffer;
+    startSFXBuffer.loadFromFile("Assets/Start.wav");
+
+    sf::Sound startSFX;
+    startSFX.setBuffer(startSFXBuffer);
+    startSFX.play();
+    
+    sf::Music gameMusic;
+    gameMusic.openFromFile("Assets/Music.ogg");
+    gameMusic.setVolume(50);
+    gameMusic.setLoop(true);
+    gameMusic.play();
+
 
 #pragma endregion
+    // End Setup
+
 
     while (window.isOpen())
     {
