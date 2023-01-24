@@ -4,6 +4,7 @@
 #include <vector>
 #include <stdlib.h>
 #include <time.h>
+#include <cmath>
 
 int main()
 {
@@ -51,13 +52,13 @@ int main()
 
 
     // Position setup
-    playerSprite.setPosition(sf::Vector2f(0.0f, 0.0f));
+    playerSprite.setPosition(sf::Vector2f(300.0f, 300.0f));
 
     // Colour Setup
     //playerSprite.setColor(sf::Color(200,200,200));
 
     // Rotation Example
-    playerSprite.setRotation(90);
+    //playerSprite.setRotation(90);
 
     // Scale Example
     //playerSprite.setScale(1.0f, 3.0f);
@@ -96,6 +97,11 @@ int main()
     gameMusic.setLoop(true);
     gameMusic.play();
 
+    float xDir = (10 - rand() % 21)/10.0f;
+    float yDir = (10 - rand() % 21)/10.0f;
+    sf::Vector2f direction(xDir, yDir);
+
+    bool blinkPressedPrev = false;
 
 #pragma endregion
     // End Setup
@@ -123,6 +129,77 @@ int main()
             if (event.type == sf::Event::Closed)
                 window.close();
         }
+
+#pragma endregion
+
+
+        // --------------------------------------------------
+        // Update
+        // --------------------------------------------------
+#pragma region Update
+
+        // Move the character
+        direction.x = 0;
+        direction.y = 0;
+
+        if (sf::Joystick::isConnected(1))
+        {
+            float axisX = sf::Joystick::getAxisPosition(1, sf::Joystick::X);
+            float axisY = sf::Joystick::getAxisPosition(1, sf::Joystick::Y);
+
+            float deadzone = 25;
+
+            if (abs(axisX) > deadzone)
+                direction.x = axisX / 100.0f;
+            if (abs(axisY) > deadzone)
+                direction.y = axisY / 100.0f;
+        }
+
+
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+        {
+            direction.x = -1;
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+        {
+            direction.x = 1;
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+        {
+            direction.y = -1;
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+        {
+            direction.y = 1;
+        }
+        sf::Vector2f newPosition = playerSprite.getPosition() + direction * 0.1f;
+        playerSprite.setPosition(newPosition);
+
+        // Blink teleport
+        bool blinkPressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Space) || sf::Joystick::isButtonPressed(1, 0);
+        // If we've JUST NOW pressed the blink button...
+        if (blinkPressed && !blinkPressedPrev)
+        {
+            sf::Vector2f blinkPosition = playerSprite.getPosition() + direction * 100.0f;
+            playerSprite.setPosition(blinkPosition);
+        }
+        blinkPressedPrev = blinkPressed;
+
+        // Spawn a stick when mouse clicked (debug only)
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+        {
+            // Get the mouse position
+            // get the local mouse position (relative to a window)
+            sf::Vector2i localPosition = sf::Mouse::getPosition(window); // window is a sf::Window
+            sf::Vector2f mousePositionFloat = (sf::Vector2f)localPosition;
+
+            // Spawn a stick at that position
+            stickSprite.setPosition(mousePositionFloat);
+            stickSprites.push_back(stickSprite);
+        }
+
+
 
 #pragma endregion
 
