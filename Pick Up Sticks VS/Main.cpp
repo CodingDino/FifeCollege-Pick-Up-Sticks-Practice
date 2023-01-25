@@ -84,6 +84,19 @@ int main()
     gameTitle.setPosition((float)window.getSize().x / 2.0f - textWidth / 2.0f, 10.0f);
 
 
+    // Create Text Objects
+    sf::Text timerText;
+    timerText.setFont(gameFont);
+    timerText.setString("Time Left: ");
+    timerText.setFillColor(sf::Color::White);
+    timerText.setOutlineThickness(2.0f);
+    timerText.setOutlineColor(sf::Color::Black);
+    timerText.setCharacterSize(30);
+
+    timerText.setPosition((float)window.getSize().x - 500.0f, 10.0f);
+
+
+
     sf::SoundBuffer startSFXBuffer;
     startSFXBuffer.loadFromFile("Assets/Start.wav");
 
@@ -102,6 +115,13 @@ int main()
     sf::Vector2f direction(xDir, yDir);
 
     bool blinkPressedPrev = false;
+
+    sf::Clock deltaTimeClock;
+    sf::Clock overallTimeClock;
+
+    sf::Clock gameTimer;
+    float gameDuration = 5; // How long the game lasts
+
 
 #pragma endregion
     // End Setup
@@ -138,14 +158,29 @@ int main()
         // --------------------------------------------------
 #pragma region Update
 
+        // Get time
+        sf::Time deltaTime = deltaTimeClock.restart();
+        sf::Time totalTime = overallTimeClock.getElapsedTime();
+
+        // Game Timer
+        float gameTimeFloat = gameTimer.getElapsedTime().asSeconds();
+        float remainingTimeFloat = gameDuration - gameTimeFloat;
+        std::string timerString = "Time: ";
+        timerString += std::to_string((int)ceil(remainingTimeFloat));
+        // Display time passed this game
+        timerText.setString(timerString);
+
+        // Player 1 controller
+        int player1Controller = 1;
+
         // Move the character
         direction.x = 0;
         direction.y = 0;
 
-        if (sf::Joystick::isConnected(1))
+        if (sf::Joystick::isConnected(player1Controller))
         {
-            float axisX = sf::Joystick::getAxisPosition(1, sf::Joystick::X);
-            float axisY = sf::Joystick::getAxisPosition(1, sf::Joystick::Y);
+            float axisX = sf::Joystick::getAxisPosition(player1Controller, sf::Joystick::X);
+            float axisY = sf::Joystick::getAxisPosition(player1Controller, sf::Joystick::Y);
 
             float deadzone = 25;
 
@@ -154,8 +189,6 @@ int main()
             if (abs(axisY) > deadzone)
                 direction.y = axisY / 100.0f;
         }
-
-
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::A))
         {
@@ -173,11 +206,18 @@ int main()
         {
             direction.y = 1;
         }
-        sf::Vector2f newPosition = playerSprite.getPosition() + direction * 0.1f;
+        
+        // Update player position based on movement direction
+        float speed = 500;
+        // velocity = direction * speed
+        sf::Vector2f velocity = direction * speed;
+        // distance traveled = velocity * time
+        sf::Vector2f distance = velocity * deltaTime.asSeconds();
+        sf::Vector2f newPosition = playerSprite.getPosition() + distance;
         playerSprite.setPosition(newPosition);
 
         // Blink teleport
-        bool blinkPressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Space) || sf::Joystick::isButtonPressed(1, 0);
+        bool blinkPressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Space) || sf::Joystick::isButtonPressed(player1Controller, 0);
         // If we've JUST NOW pressed the blink button...
         if (blinkPressed && !blinkPressedPrev)
         {
@@ -219,6 +259,7 @@ int main()
         window.draw(playerSprite);
 
         window.draw(gameTitle);
+        window.draw(timerText);
 
         window.display();
 
