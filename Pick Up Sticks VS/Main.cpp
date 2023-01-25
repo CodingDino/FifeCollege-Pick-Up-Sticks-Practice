@@ -84,7 +84,6 @@ int main()
     gameTitle.setPosition((float)window.getSize().x / 2.0f - textWidth / 2.0f, 10.0f);
 
 
-    // Create Text Objects
     sf::Text timerText;
     timerText.setFont(gameFont);
     timerText.setString("Time Left: ");
@@ -95,6 +94,28 @@ int main()
 
     timerText.setPosition((float)window.getSize().x - 500.0f, 10.0f);
 
+    sf::Text gameOverMessage;
+    gameOverMessage.setFont(gameFont);
+    gameOverMessage.setString("GAME OVER!");
+    gameOverMessage.setFillColor(sf::Color::Red);
+    gameOverMessage.setOutlineThickness(2.0f);
+    gameOverMessage.setOutlineColor(sf::Color::Black);
+    gameOverMessage.setStyle(sf::Text::Style::Bold | sf::Text::Style::Italic);
+    gameOverMessage.setCharacterSize(60);
+
+    textWidth = gameOverMessage.getLocalBounds().width;
+    gameOverMessage.setPosition((float)window.getSize().x / 2.0f - textWidth / 2.0f, (float)window.getSize().y/2 - 300);
+
+    sf::Text restartText;
+    restartText.setFont(gameFont);
+    restartText.setString("< Press Enter to Restart >");
+    restartText.setFillColor(sf::Color::White);
+    restartText.setOutlineThickness(2.0f);
+    restartText.setOutlineColor(sf::Color::Black);
+    restartText.setCharacterSize(30);
+
+    textWidth = restartText.getLocalBounds().width;
+    restartText.setPosition((float)window.getSize().x / 2.0f - textWidth / 2.0f, (float)window.getSize().y/2 + 100);
 
 
     sf::SoundBuffer startSFXBuffer;
@@ -121,6 +142,10 @@ int main()
 
     sf::Clock gameTimer;
     float gameDuration = 5; // How long the game lasts
+
+    bool gameRunning = true;
+
+
 
 
 #pragma endregion
@@ -166,6 +191,12 @@ int main()
         float gameTimeFloat = gameTimer.getElapsedTime().asSeconds();
         float remainingTimeFloat = gameDuration - gameTimeFloat;
         std::string timerString = "Time: ";
+
+        if (remainingTimeFloat <= 0)
+        {
+            remainingTimeFloat = 0;
+            gameRunning = false;
+        }
         timerString += std::to_string((int)ceil(remainingTimeFloat));
         // Display time passed this game
         timerText.setString(timerString);
@@ -173,71 +204,89 @@ int main()
         // Player 1 controller
         int player1Controller = 1;
 
-        // Move the character
-        direction.x = 0;
-        direction.y = 0;
-
-        if (sf::Joystick::isConnected(player1Controller))
+        // Only process game logic when game is running
+        if (gameRunning)
         {
-            float axisX = sf::Joystick::getAxisPosition(player1Controller, sf::Joystick::X);
-            float axisY = sf::Joystick::getAxisPosition(player1Controller, sf::Joystick::Y);
+            // Move the character
+            direction.x = 0;
+            direction.y = 0;
 
-            float deadzone = 25;
+            if (sf::Joystick::isConnected(player1Controller))
+            {
+                float axisX = sf::Joystick::getAxisPosition(player1Controller, sf::Joystick::X);
+                float axisY = sf::Joystick::getAxisPosition(player1Controller, sf::Joystick::Y);
 
-            if (abs(axisX) > deadzone)
-                direction.x = axisX / 100.0f;
-            if (abs(axisY) > deadzone)
-                direction.y = axisY / 100.0f;
+                float deadzone = 25;
+
+                if (abs(axisX) > deadzone)
+                    direction.x = axisX / 100.0f;
+                if (abs(axisY) > deadzone)
+                    direction.y = axisY / 100.0f;
+            }
+
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+            {
+                direction.x = -1;
+            }
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+            {
+                direction.x = 1;
+            }
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+            {
+                direction.y = -1;
+            }
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+            {
+                direction.y = 1;
+            }
+
+            // Update player position based on movement direction
+            float speed = 500;
+            // velocity = direction * speed
+            sf::Vector2f velocity = direction * speed;
+            // distance traveled = velocity * time
+            sf::Vector2f distance = velocity * deltaTime.asSeconds();
+            sf::Vector2f newPosition = playerSprite.getPosition() + distance;
+            playerSprite.setPosition(newPosition);
+
+            // Blink teleport
+            bool blinkPressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Space) || sf::Joystick::isButtonPressed(player1Controller, 0);
+            // If we've JUST NOW pressed the blink button...
+            if (blinkPressed && !blinkPressedPrev)
+            {
+                sf::Vector2f blinkPosition = playerSprite.getPosition() + direction * 100.0f;
+                playerSprite.setPosition(blinkPosition);
+            }
+            blinkPressedPrev = blinkPressed;
+
+            // Spawn a stick when mouse clicked (debug only)
+            if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+            {
+                // Get the mouse position
+                // get the local mouse position (relative to a window)
+                sf::Vector2i localPosition = sf::Mouse::getPosition(window); // window is a sf::Window
+                sf::Vector2f mousePositionFloat = (sf::Vector2f)localPosition;
+
+                // Spawn a stick at that position
+                stickSprite.setPosition(mousePositionFloat);
+                stickSprites.push_back(stickSprite);
+            }
         }
 
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+        if (!gameRunning)
         {
-            direction.x = -1;
+            // Restart the game!
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter))
+            {
+                gameRunning = true;
+                stickSprites.clear();
+                // TODO: Reset score
+                gameTimer.restart();
+                playerSprite.setPosition(sf::Vector2f(300.0f, 300.0f));
+            }
         }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-        {
-            direction.x = 1;
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::W))
-        {
-            direction.y = -1;
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::S))
-        {
-            direction.y = 1;
-        }
-        
-        // Update player position based on movement direction
-        float speed = 500;
-        // velocity = direction * speed
-        sf::Vector2f velocity = direction * speed;
-        // distance traveled = velocity * time
-        sf::Vector2f distance = velocity * deltaTime.asSeconds();
-        sf::Vector2f newPosition = playerSprite.getPosition() + distance;
-        playerSprite.setPosition(newPosition);
 
-        // Blink teleport
-        bool blinkPressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Space) || sf::Joystick::isButtonPressed(player1Controller, 0);
-        // If we've JUST NOW pressed the blink button...
-        if (blinkPressed && !blinkPressedPrev)
-        {
-            sf::Vector2f blinkPosition = playerSprite.getPosition() + direction * 100.0f;
-            playerSprite.setPosition(blinkPosition);
-        }
-        blinkPressedPrev = blinkPressed;
-
-        // Spawn a stick when mouse clicked (debug only)
-        if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
-        {
-            // Get the mouse position
-            // get the local mouse position (relative to a window)
-            sf::Vector2i localPosition = sf::Mouse::getPosition(window); // window is a sf::Window
-            sf::Vector2f mousePositionFloat = (sf::Vector2f)localPosition;
-
-            // Spawn a stick at that position
-            stickSprite.setPosition(mousePositionFloat);
-            stickSprites.push_back(stickSprite);
-        }
 
 
 
@@ -260,6 +309,12 @@ int main()
 
         window.draw(gameTitle);
         window.draw(timerText);
+
+        if (!gameRunning)
+        {
+            window.draw(gameOverMessage);
+            window.draw(restartText);
+        }
 
         window.display();
 
