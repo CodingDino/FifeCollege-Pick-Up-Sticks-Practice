@@ -6,6 +6,13 @@
 #include <time.h>
 #include <cmath>
 
+enum GameState
+{
+    RUNNING,        // RUNNING = 0;
+    GAME_OVER,       // GAME_OVER = 1;
+    NUM_GAME_STATES
+};
+
 int main()
 {
 
@@ -137,13 +144,19 @@ int main()
 
     bool blinkPressedPrev = false;
 
+
+    // Clocks and timers
     sf::Clock deltaTimeClock;
     sf::Clock overallTimeClock;
 
     sf::Clock gameTimer;
     float gameDuration = 5; // How long the game lasts
 
-    bool gameRunning = true;
+    //bool gameRunning = true;
+    GameState currentState = RUNNING; // assign the value 0 to the currentState, which we know is RUNNING
+
+    sf::Clock stickSpawnClock;
+    float stickSpawnCooldownDuration = 1;
 
 
 
@@ -195,7 +208,8 @@ int main()
         if (remainingTimeFloat <= 0)
         {
             remainingTimeFloat = 0;
-            gameRunning = false;
+            //gameRunning = false;
+            currentState = GAME_OVER;
         }
         timerString += std::to_string((int)ceil(remainingTimeFloat));
         // Display time passed this game
@@ -205,7 +219,7 @@ int main()
         int player1Controller = 1;
 
         // Only process game logic when game is running
-        if (gameRunning)
+        if (currentState == RUNNING)
         {
             // Move the character
             direction.x = 0;
@@ -272,14 +286,29 @@ int main()
                 stickSprite.setPosition(mousePositionFloat);
                 stickSprites.push_back(stickSprite);
             }
-        }
 
-        if (!gameRunning)
+            // If it is time to spawn a stick...
+            if (stickSpawnClock.getElapsedTime().asSeconds() >= stickSpawnCooldownDuration)
+            {
+                // Spawn a stick and restart the clock
+                stickSprite.setPosition(sf::Vector2f(rand() % (window.getSize().x - stickTexture.getSize().x), rand() % (window.getSize().y - stickTexture.getSize().y)));
+                stickSprites.push_back(stickSprite);
+                stickSpawnClock.restart();
+            }
+
+
+            // Check if player is colliding with sticks
+            // TODO: Next week
+
+
+        } // end of gameRunning if statement
+
+        if (currentState == GAME_OVER)
         {
             // Restart the game!
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter))
             {
-                gameRunning = true;
+                currentState = RUNNING;
                 stickSprites.clear();
                 // TODO: Reset score
                 gameTimer.restart();
@@ -310,7 +339,7 @@ int main()
         window.draw(gameTitle);
         window.draw(timerText);
 
-        if (!gameRunning)
+        if (currentState == GAME_OVER)
         {
             window.draw(gameOverMessage);
             window.draw(restartText);
