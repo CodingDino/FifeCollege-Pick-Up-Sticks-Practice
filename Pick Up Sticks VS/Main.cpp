@@ -6,7 +6,7 @@
 #include <time.h>
 #include <cmath>
 
-enum GameState
+enum class GameState
 {
     RUNNING,        // RUNNING = 0;
     GAME_OVER,       // GAME_OVER = 1;
@@ -93,13 +93,23 @@ int main()
 
     sf::Text timerText;
     timerText.setFont(gameFont);
-    timerText.setString("Time Left: ");
+    timerText.setString("Time: ");
     timerText.setFillColor(sf::Color::White);
     timerText.setOutlineThickness(2.0f);
     timerText.setOutlineColor(sf::Color::Black);
     timerText.setCharacterSize(30);
 
-    timerText.setPosition((float)window.getSize().x - 500.0f, 10.0f);
+    timerText.setPosition((float)window.getSize().x - 300.0f, 10.0f);
+
+    sf::Text scoreText;
+    scoreText.setFont(gameFont);
+    scoreText.setString("Score: 0");
+    scoreText.setFillColor(sf::Color::White);
+    scoreText.setOutlineThickness(2.0f);
+    scoreText.setOutlineColor(sf::Color::Black);
+    scoreText.setCharacterSize(30);
+
+    scoreText.setPosition(10.0f, 10.0f);
 
     sf::Text gameOverMessage;
     gameOverMessage.setFont(gameFont);
@@ -150,15 +160,15 @@ int main()
     sf::Clock overallTimeClock;
 
     sf::Clock gameTimer;
-    float gameDuration = 5; // How long the game lasts
+    float gameDuration = 30; // How long the game lasts
 
     //bool gameRunning = true;
-    GameState currentState = RUNNING; // assign the value 0 to the currentState, which we know is RUNNING
+    GameState currentState = GameState::RUNNING; // assign the value 0 to the currentState, which we know is RUNNING
 
     sf::Clock stickSpawnClock;
     float stickSpawnCooldownDuration = 1;
 
-
+    int score = 0;
 
 
 #pragma endregion
@@ -209,17 +219,17 @@ int main()
         {
             remainingTimeFloat = 0;
             //gameRunning = false;
-            currentState = GAME_OVER;
+            currentState = GameState::GAME_OVER;
         }
         timerString += std::to_string((int)ceil(remainingTimeFloat));
         // Display time passed this game
         timerText.setString(timerString);
 
         // Player 1 controller
-        int player1Controller = 1;
+        int player1Controller = 0;
 
         // Only process game logic when game is running
-        if (currentState == RUNNING)
+        if (currentState == GameState::RUNNING)
         {
             // Move the character
             direction.x = 0;
@@ -299,20 +309,52 @@ int main()
 
             // Check if player is colliding with sticks
             // TODO: Next week
+            sf::FloatRect playerBounds = playerSprite.getGlobalBounds();
+
+            // Loop through all our stick sprites and check if any are overlapping with our player
+            // 
+            for (auto it = stickSprites.begin(); it != stickSprites.end(); /*++it*/ )
+            //for (int i = stickSprites.size() - 1; i >= 0; --i)
+            {
+                // it is an iterator, which can be used like a pointer to the type inside the vector
+                sf::FloatRect stickBounds = it->getGlobalBounds();
+                // If the stick and player overlap...
+                if (playerBounds.intersects(stickBounds))
+                {
+                    // Delete the stick
+                    it = stickSprites.erase(it);
+                    // Add to the score
+                    ++score;
+                    // Update the score text
+                    std::string scoreString = "Score: ";
+                    scoreString += std::to_string(score);
+                    scoreText.setString(scoreString);
+                }
+                else
+                {
+                    // Add to iterator here, since we didn't erase
+                    ++it;
+                }
+            }
 
 
         } // end of gameRunning if statement
 
-        if (currentState == GAME_OVER)
+        if (currentState == GameState::GAME_OVER)
         {
             // Restart the game!
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter))
             {
-                currentState = RUNNING;
+                currentState = GameState::RUNNING;
                 stickSprites.clear();
                 // TODO: Reset score
                 gameTimer.restart();
                 playerSprite.setPosition(sf::Vector2f(300.0f, 300.0f));
+                score = 0;
+                // Update the score text
+                std::string scoreString = "Score: ";
+                scoreString += std::to_string(score);
+                scoreText.setString(scoreString);
             }
         }
 
@@ -338,8 +380,9 @@ int main()
 
         window.draw(gameTitle);
         window.draw(timerText);
+        window.draw(scoreText);
 
-        if (currentState == GAME_OVER)
+        if (currentState == GameState::GAME_OVER)
         {
             window.draw(gameOverMessage);
             window.draw(restartText);
