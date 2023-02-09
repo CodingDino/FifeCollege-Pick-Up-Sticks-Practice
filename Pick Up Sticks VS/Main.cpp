@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <cmath>
+#include "Animation.h"
 
 enum class GameState
 {
@@ -25,15 +26,25 @@ int main()
 
     srand(time(NULL));
 
-    sf::Texture playerTexture;
-    playerTexture.loadFromFile("Assets/Player_Stand.png");
+    sf::Texture playerTextureStand;
+    playerTextureStand.loadFromFile("Assets/Player_Stand_1.png");
     sf::Texture grassTexture;
     grassTexture.loadFromFile("Assets/Grass.png");
     sf::Texture stickTexture;
     stickTexture.loadFromFile("Assets/Stick.png");
 
+
+
     sf::Sprite playerSprite;
-    playerSprite.setTexture(playerTexture);
+    playerSprite.setTexture(playerTextureStand);
+
+    // Player animation setup
+    Animation playerAnimation(&playerSprite, "Assets/Player", 12.0f);
+    playerAnimation.AddClip("Stand", 1, false);
+    playerAnimation.AddClip("Walk", 2, true);
+
+
+
     sf::Sprite grassSprite;
     grassSprite.setTexture(grassTexture);
     sf::Sprite stickSprite;
@@ -71,7 +82,7 @@ int main()
     //playerSprite.setScale(1.0f, 3.0f);
 
     // Origin Example
-    playerSprite.setOrigin(playerTexture.getSize().x / 2, playerTexture.getSize().y / 2);
+    playerSprite.setOrigin(playerTextureStand.getSize().x / 2, playerTextureStand.getSize().y / 2);
 
     // Load Fonts
     sf::Font gameFont;
@@ -265,6 +276,16 @@ int main()
                 direction.y = 1;
             }
 
+            if (direction.x != 0 || direction.y != 0)
+            {
+                playerAnimation.Play("Walk");
+            }
+            else
+            {
+                playerAnimation.Play("Stand");
+            }
+
+
             // Update player position based on movement direction
             float speed = 500;
             // velocity = direction * speed
@@ -336,6 +357,9 @@ int main()
                     ++it;
                 }
             }
+
+            // Process animation
+            playerAnimation.Update();
 
 
         } // end of gameRunning if statement
