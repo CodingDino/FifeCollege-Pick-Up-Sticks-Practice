@@ -32,6 +32,30 @@ int main()
     sf::Texture stickTexture;
     stickTexture.loadFromFile("Assets/Stick.png");
 
+    // Player animation details
+    std::vector<sf::Texture> playerWalkClip;
+    playerWalkClip.push_back(sf::Texture());
+    playerWalkClip[0].loadFromFile("Assets/Player_Walk_1.png");
+    playerWalkClip.push_back(sf::Texture());
+    playerWalkClip[1].loadFromFile("Assets/Player_Walk_2.png");
+    /*int numFrames = 1;
+    for (int i = 0; i < numFrames; ++i)
+    {
+        playerWalkTextures.push_back(sf::Texture());
+        std::string assetLocation = "Assets/Player_Walk_";
+        assetLocation += std::to_string(i+1);
+        playerWalkTextures[i].loadFromFile(assetLocation);
+    }*/
+    std::vector<sf::Texture> playerStandClip;
+    playerStandClip.push_back(sf::Texture());
+    playerStandClip[0].loadFromFile("Assets/Player_Stand.png");
+    std::vector<sf::Texture>* currentClip = &playerStandClip;
+    int currentFrame = 0;
+    float framesPerSecond = 12.0f;
+    sf::Time timePerFrame = sf::seconds(1.0f / framesPerSecond);
+    sf::Clock animationClock;
+
+
     sf::Sprite playerSprite;
     playerSprite.setTexture(playerTexture);
     sf::Sprite grassSprite;
@@ -265,6 +289,15 @@ int main()
                 direction.y = 1;
             }
 
+            if (direction.x != 0 || direction.y != 0)
+            {
+                currentClip = &playerWalkClip;
+            }
+            else
+            {
+                currentClip = &playerStandClip;
+            }
+
             // Update player position based on movement direction
             float speed = 500;
             // velocity = direction * speed
@@ -337,6 +370,20 @@ int main()
                 }
             }
 
+            // process animation
+            sf::Time timeInFrame = animationClock.getElapsedTime();
+            if (timeInFrame >= timePerFrame)
+            {
+                animationClock.restart();
+
+                ++currentFrame;
+                if (currentFrame >= currentClip->size())
+                {
+                    currentFrame = 0;
+                }
+                playerSprite.setTexture((*currentClip)[currentFrame]);
+            }
+
 
         } // end of gameRunning if statement
 
@@ -357,8 +404,6 @@ int main()
                 scoreText.setString(scoreString);
             }
         }
-
-
 
 
 #pragma endregion
